@@ -16,7 +16,15 @@ typedef struct {
 //These can be altered Later by using Struct_name.Struct_access 
 MsgData Recieved_Data = {0, 0};
 MsgData My_Data = {1, 2, 1};
+
+//Tim's defined variables
 int TransAMOUNT=1;
+int awake=true; 
+int node_name=5;
+int sleep_amount=2000;
+int history=NULL;
+//Reserved: Node 0, Data ID -1,
+
 
 void setup(void){
     Serial.begin(9600);
@@ -26,16 +34,42 @@ void setup(void){
     radio.startListening();
 }
 
+
+
+
+
 void loop(void){
- recieve();
- //if not you => send on
- if (Recieved_Data.sensor1==5){
- transmit(My_Data);
- Serial.println("Transmitting_msg");
- }
- 
-// Serial.println(Recieved_Data.sensor1);
+  awake=true;
+  //My_Data=sensorREAD();                   //take sensor reading
+  
+  while(awake){
+    recieve();
+    
+    if(Recieved_Data.ID==node_name){        //if you => send your data
+      transmit(My_Data);
+      Serial.println("sending_msg");
+    }
+    
+    else if(Recieved_Data.ID!=history){     //if not you => forward data
+        transmit(Recieved_Data);            
+        history=Recieved_Data.ID;
+        Serial.println("forwarding_msg");
+    }
+    
+    if(Recieved_Data.ID==-1){                //sleep command
+        awake=false;
+        sleep_amount=Recieved_Data.sensor1; //set timmer for sleep amount
+     }        
+  }
+  history=NULL;                             //reset history for the day
+  delay(sleep_amount);                      //enter low power sleep mode   
 }
+
+
+
+
+
+
 
 
 
@@ -51,7 +85,7 @@ void recieve(){
          //}
       }
       else{
-      Serial.println(NULL);
+      Serial.println("NULL");
       }
     return;
 }
