@@ -18,7 +18,7 @@ MsgData Recieved_Data = {0, 0};
 MsgData My_Data = {1, 2, 1};
 
 //Tim's defined variables
-int TransAMOUNT=1;
+int TransAMOUNT=5;
 int awake=true; 
 int node_name=5;
 int sleep_amount=2000;
@@ -39,30 +39,37 @@ void setup(void){
 
 
 void loop(void){
-  awake=true;
+  delay(10000);     
   //My_Data=sensorREAD();                   //take sensor reading
+  recieve();                                //wait for incoming data to enter loop
   
-  while(awake){
-    recieve();
+  for(;;){
+    awake=true;
+    //My_Data=sensorREAD();                   //take sensor reading
     
-    if(Recieved_Data.ID==node_name){        //if you => send your data
-      transmit(My_Data);
-      Serial.println("sending_msg");
+    while(awake){
+      recieve();
+      //if recieved data
+      if(Recieved_Data.sensor1==node_name){        //if you => send your data
+        transmit(My_Data);
+        Serial.println("sending_msg");
+      }
+      
+      else if(Recieved_Data.sensor1!=history){     //if not you => forward data
+          MsgData fwd_data={1, 2, 5};
+          transmit(fwd_data);            
+          history=Recieved_Data.sensor1;
+          Serial.println("forwarding_msg");
+      }
+      
+      if(Recieved_Data.ID==-1){                //sleep command
+          awake=false;
+          sleep_amount=Recieved_Data.sensor1; //set timmer for sleep amount
+       }        
     }
-    
-    else if(Recieved_Data.ID!=history){     //if not you => forward data
-        transmit(Recieved_Data);            
-        history=Recieved_Data.ID;
-        Serial.println("forwarding_msg");
-    }
-    
-    if(Recieved_Data.ID==-1){                //sleep command
-        awake=false;
-        sleep_amount=Recieved_Data.sensor1; //set timmer for sleep amount
-     }        
+    history=NULL;                             //reset history for the day
+    delay(sleep_amount);                      //enter low power sleep mode   
   }
-  history=NULL;                             //reset history for the day
-  delay(sleep_amount);                      //enter low power sleep mode   
 }
 
 
@@ -77,12 +84,10 @@ void recieve(){
     radio.openWritingPipe(addresses[1]);
     radio.openReadingPipe(1,addresses[0]);
     radio.startListening();  
-       if(radio.available()){
-        //while(radio.available()){   
+       if(radio.available()){ 
             radio.read(&Recieved_Data, sizeof(MsgData));  //byte value
             delay(5);
             Serial.println(Recieved_Data.sensor1);
-         //}
       }
       else{
       Serial.println("NULL");

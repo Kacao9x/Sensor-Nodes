@@ -17,6 +17,7 @@ typedef struct {
 //These can be altered Later by using Struct_name.Struct_access 
 MsgData Recieved_Data = {0, 0};
 MsgData My_Data = {1, 2, 1};
+int TransAMOUNT=5;
 
 void setup(void){
     Serial.begin(9600);
@@ -24,6 +25,9 @@ void setup(void){
     radio.setAutoAck(false);
     radio.openReadingPipe(1,pipe);
     radio.startListening();
+    pinMode(4,INPUT_PULLUP);  
+    pinMode(5,INPUT_PULLUP); 
+    pinMode(6,INPUT_PULLUP);
 }
 
 void loop(void){
@@ -53,14 +57,22 @@ void transmit(MsgData Transmit_Msg){
     radio.openReadingPipe(1,addresses[1]);
     radio.stopListening();
     //unsigned long msg = value;
-  for(byte i=0; i<15; i++){ 
+  for(byte i=0; i<TransAMOUNT; i++){ 
+        My_Data = {1, 2, 1};
         int temp= digitalRead(4);
-        if(temp==HIGH){
+        if(temp==LOW){
         My_Data = {1, 2, 5};
         }
-        else{
-          My_Data = {1, 2, 1};
+        int temp1= digitalRead(5);
+        if(temp1==LOW){
+        My_Data = {1, 2, 2};
         }
+        int temp2= digitalRead(6);
+        if(temp2==LOW){
+        My_Data = {1, 2, 4};
+        }
+       
+        
         radio.write(&Transmit_Msg, sizeof(MsgData));
         delay(5);
         
