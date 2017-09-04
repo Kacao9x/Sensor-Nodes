@@ -4,20 +4,24 @@
 
 RF24 radio(7,8);
 const uint64_t pipe = 0xE8E8F0F0E1LL; //channel to recieve
-byte addresses[][6] = {"1Node","2Node"};
+byte addresses[][6] = {"00001","00002"};
 //unsigned long msg;
 
-typedef struct {
-  byte Priority;
-  byte ID;
-  float sensor1;
-}MsgData;
+typedef struct{
+  byte Direction;
+  int ID;
+  float Data;
+}package;
+
 
 //Initializing the Data in Structs.
 //These can be altered Later by using Struct_name.Struct_access 
-MsgData Recieved_Data = {0, 0};
-MsgData My_Data = {1, 2, 1};
+package recievedData = {0, 0};
+package myData = {1, 2, 1};
 int TransAMOUNT=5;
+int DataTRANS=false;
+int i;
+int Timeout=5000;
 
 void setup(void){
     Serial.begin(9600);
@@ -31,10 +35,24 @@ void setup(void){
 }
 
 void loop(void){
- transmit(My_Data);
-//recieve();
- //Serial.println(Recieved_Data.sensor1);
-  
+ DataTRANS=false;
+ i=0;
+ transmit(myData);
+ while(DataTRANS){   //recieve until hear response from different direction same ID
+    if(i==0){
+      Serial.println("---Listening For Response---");
+    }
+    recieve();
+    if((recievedData.Direction==0)&&(recievedData.ID==myData.ID)){
+      Serial.print("Data recieved: "); Serial.print(recievedData.ID);Serial.print(", ");Serial.println(recievedData.Data);
+      break;
+    }
+    if(i>Timeout){
+      Serial.println("recieve timed out");
+      break;
+    }
+    i++;
+ }
 }
 
 
@@ -43,39 +61,38 @@ void recieve(){
     radio.openWritingPipe(addresses[1]);
     radio.openReadingPipe(1,addresses[0]);
     radio.startListening();  
-       if(radio.available()){
-        while(radio.available()){   
-            radio.read(&Recieved_Data, sizeof(MsgData));  //byte value
+       if(radio.available()){ 
+            radio.read(&recievedData, sizeof(package));  //byte value
             delay(5);
-         }
       }
     return;
 }
 
-void transmit(MsgData Transmit_Msg){
+void transmit(package myData){
     radio.openWritingPipe(addresses[0]);
-    radio.openReadingPipe(1,addresses[1]);
     radio.stopListening();
-    //unsigned long msg = value;
   for(byte i=0; i<TransAMOUNT; i++){ 
-        My_Data = {1, 2, 1};
         int temp= digitalRead(4);
-        if(temp==LOW){
-        My_Data = {1, 2, 5};
-        }
         int temp1= digitalRead(5);
-        if(temp1==LOW){
-        My_Data = {1, 2, 2};
-        }
         int temp2= digitalRead(6);
-        if(temp2==LOW){
-        My_Data = {1, 2, 4};
+        if(temp==LOW){
+        myData = {1, 5, 223};
+        DataTRANS=true;
         }
-       
-        
-        radio.write(&Transmit_Msg, sizeof(MsgData));
+        if(temp1==LOW){
+        myData = {1, 3, 32};
+        DataTRANS=true;
+        }
+        if(temp2==LOW){
+        myData = {1, -1, 800};
+        DataTRANS=true;
+        }
+        if(temp==HIGH&&temp1==HIGH&&temp2==HIGH){
+          return;
+        }
+        radio.write(&myData, sizeof(package));
         delay(5);
-        
+        Serial.print("sending_msg: ");Serial.print(myData.ID);Serial.print(", ");Serial.println(myData.Data);
   }
 }
 
