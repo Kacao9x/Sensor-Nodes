@@ -21,7 +21,7 @@ package myData={0,5,20};    //0= node, ID=5, Data=20
 
 //Tim's defined variables
 int TransAMOUNT=10;
-float sleep_amount;
+int sleep_amount;
 int IDhistory=NULL;
 int DIRhistory=NULL;
 //Reserved: Node 0, Data ID -1,
@@ -41,34 +41,7 @@ void setup(void){
 
 void loop(void){
     //myData=sensorREAD();                   //take sensor reading
-    
-    for(;;){
-      recieve();
-      //if recieved data
-    
-        if((recievedData.ID==myData.ID)&&(recievedData.Direction==1)&&((recievedData.ID!=IDhistory)||(recievedData.Direction!=DIRhistory))){        //if you => send your data
-          transmit(myData);
-          IDhistory=recievedData.ID;
-          DIRhistory=recievedData.Direction;
-          Serial.print("sending_msg: ");Serial.print(myData.ID);Serial.print(", ");Serial.println(myData.Data);
-        }
-        if(recievedData.ID==-1){                //sleep command
-          sleep_amount=recievedData.Data; //set timmer for sleep amount
-          recievedData.ID=0;
-          Serial.println("recieved sleep cmd");
-          break;
-       }  
-        if((recievedData.ID!=myData.ID)&&((recievedData.ID!=IDhistory)||(recievedData.Direction!=DIRhistory))){     //if not you => forward data
-            transmit(recievedData);            
-            IDhistory=recievedData.ID;
-            DIRhistory=recievedData.Direction;
-            Serial.print("forwarding_msg: ");Serial.print(recievedData.ID);Serial.print(", ");Serial.println(recievedData.Data);
-        }
-    }
-    IDhistory=NULL;                             //reset history for the day
-    DIRhistory=NULL;
-    Serial.println("----SLEEPING----");
-    delay(sleep_amount);                      //enter low power sleep mode  
+    recieve();
 }
 
 
@@ -79,12 +52,12 @@ void recieve(){
        if(radio.available()){ 
             radio.read(&recievedData, sizeof(package));  //byte value
             delay(5);
-           // Serial.print(recievedData.ID);
-           // Serial.print(": ");
-            //Serial.println(recievedData.Data);
+            Serial.print(recievedData.ID);
+            Serial.print(": ");
+           Serial.println(recievedData.Data);
       }
       else{
-      //Serial.println("NULL");
+      Serial.println("NULL");
       }
     return;
 }
