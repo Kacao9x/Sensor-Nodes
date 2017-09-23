@@ -1,13 +1,10 @@
 #include <SPI.h>
 #include "RF24.h"
-#include "DHT.h"
+
 
 
 const int Max_Nodes = 30;
 byte Received_ID_Tags[Max_Nodes]; //write max number of Nodes. 
-#define DHTTYPE DHT11   // DHT 11
-#define DHTPIN 5
-DHT dht(DHTPIN, DHTTYPE);
 
 RF24 radio(7,8);
 const uint64_t pipe = 0xE8E8F0F0E1LL; //channel to receive
@@ -17,6 +14,7 @@ byte addresses[][6] = {"1Node","2Node"};
 typedef struct {
   byte ID;
   float sensor1;
+  int path [256] = 0;
   byte GoToSleep;
 }MsgData;
 
@@ -33,13 +31,19 @@ bool Once = false;
 bool flag = 0;
 int time_packet = 0;
 
+
+
+byte TransAMOUNT = 5;
+
+
+
 void setup(void){
     Serial.begin(9600);
     radio.begin();
     radio.setAutoAck(false);
     radio.openReadingPipe(1,pipe);
     radio.startListening();
-    dht.begin();
+
 }
 
 void loop(void){
@@ -61,7 +65,7 @@ void loop(void){
       time_packet = time_packet - 1;                //subtract 1ms from time_packet to make accurate for future nodes
       transmit_time_packet(time_packet);            //transmit packet for other leafnodes
         Once = true;
-          My_Data.sensor1 = dht.readTemperature(true);
+
       }
   }
 
@@ -132,24 +136,19 @@ void reset(){
 }
         
 void receive(){                                                             //Recieve Data from another node
-    radio.openWritingPipe(addresses[1]);
     radio.openReadingPipe(1,addresses[0]);
     radio.startListening();  
-       if(radio.available()){
-        while(radio.available()){   
-            radio.read(&Received_Data, sizeof(MsgData));  //byte value
+       if(radio.available()){ 
+            radio.read(&recievedData, sizeof(MsgData));  //byte value
             delay(5);
-         }
       }
     return;
 }
 
 void transmit(MsgData Transmit_Msg){                                        //Transmit Data to Another Node
     radio.openWritingPipe(addresses[0]);
-    radio.openReadingPipe(1,addresses[1]);
     radio.stopListening();
-    //unsigned long msg = value;
-  for(byte i=0; i<15; i++){  
+  for(byte i=0; i<TransAMOUNT; i++){  
         radio.write(&Transmit_Msg, sizeof(MsgData));
         delay(5);
   }
