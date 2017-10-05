@@ -27,7 +27,9 @@ typedef struct {
 int TransAMOUNT=15;
 int DataTRANS=false;
 int i;
-int Timeout=5000;
+int Timeout=500;
+int count=0;
+int start_time;
 
 
 void setup(void){
@@ -52,23 +54,14 @@ void loop(void){
  DataTRANS=false;
  My_Data.return_flag=0;
  My_Data.Place_In_Path=1;
- i=0;
+
  transmit(My_Data);
- while(DataTRANS){   //recieve until hear response from different direction same ID
-    if(i==0){
-      Serial.println("---Listening For Response---");
-    }
-    recieve();
-    if((Received_Data.return_flag == 1)&&(Received_Data.path[Received_Data.Place_In_Path-1]==0)){
-      Serial.print("Data recieved: "); Serial.print(Received_Data.ID);Serial.print(", ");Serial.println(Received_Data.sensor1);
-      break;
-    }
-    if(i>Timeout){
-      Serial.println("recieve timed out");
-      break;
-    }
-    i++;
+ start_time=millis();
+ if(DataTRANS){
+  Serial.println("---Listening For Response---");
  }
+ while(DataTRANS){   //recieve until hear response from different direction same ID
+
 }
 
 
