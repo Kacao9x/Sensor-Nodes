@@ -24,10 +24,10 @@ typedef struct {
 //Initializing the Data in Structs.
 //These can be altered Later by using Struct_name.Struct_access 
 
-int TransAMOUNT=15;
+int TransAMOUNT=5;
 int DataTRANS=false;
 int i;
-unsigned long Timeout=500;
+unsigned long Timeout=5000;
 int count=0;
 unsigned long start_time;
 bool old_Data=true;
@@ -88,9 +88,9 @@ void serial_logger(){
 
     else if ( c == '2'){ 
         //path to 2
-        for(i=0;i<Max_Nodes;i++){
-          My_Data.path[i] = i;
-        }   
+        My_Data.path[0] = 0;
+        My_Data.path[1] = 1;
+        My_Data.path[2] = 2;   
       Serial.println(F("Calling node 2"));
    }
 
@@ -99,6 +99,7 @@ void serial_logger(){
         My_Data.path[0] = 0;
         My_Data.path[1] = 1;
         My_Data.path[2] = 2;
+        My_Data.path[3] = 3;
       Serial.println(F("Calling node 3"));
    }
      else{
