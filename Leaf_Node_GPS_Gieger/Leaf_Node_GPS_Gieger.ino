@@ -2,17 +2,18 @@
 #include "RF24.h"
 
 const byte NodeID = 1;
-float NodeData = 420;
+float NodeData = 33.2;
 
 const int Max_Nodes = 20;
 byte Received_ID_Tags[Max_Nodes]; //write max number of Nodes. 
+byte TransAMOUNT = 1;
 
 RF24 radio(7,8);
 const uint64_t pipe = 0xE8E8F0F0E1LL; //channel to receive
 byte addresses[][6] = {"1Node","2Node"};
 
 
-byte TransAMOUNT = 15;
+
 
 
 
@@ -26,10 +27,11 @@ typedef struct {
   float sensor1;
 }MsgData;
 
-  MsgData My_Data;
-  MsgData Received_Data;
+MsgData My_Data;
+MsgData Received_Data;
+MsgData BAD_DATA;
 
-
+int i;
 
 void setup() {
     Serial.begin(9600);
@@ -44,14 +46,17 @@ void setup() {
 void loop() {  
   receive(); //wait until we get something
   
-  //If next number is -1 (end of path) AND we are the next in line
+//If next number is -1 (end of path) AND we are the next in line
+//BACK TO HOME NODE
   if(0 == Received_Data.path[Received_Data.Place_In_Path + 1] && Received_Data.path[Received_Data.Place_In_Path] == My_Data.ID){
     Received_Data.return_flag = 1; //Return to the home node
     //put data into the send back variable
     Received_Data.sensor1 = My_Data.sensor1;
+    Received_Data.ID = My_Data.ID; //sends the last node's ID number
     
-    Received_Data.Place_In_Path --;     //go back a step, in the path
+    Received_Data.Place_In_Path --;     //go back a step, in the path (where is the next step)
     Serial.println("*******END NODE***** Passed Back Data");
+    delay(20);//wait for Home Node to get into recieve mode.
     transmit(Received_Data);
   }
   
@@ -92,7 +97,7 @@ void receive(){                                                             //Re
             Serial.println(Received_Data.Place_In_Path);
 
             Serial.print("Path: ");
-            for (int i=0;i<Max_Nodes;i++){
+            for (i=0;i<Max_Nodes;i++){
               Serial.print(Received_Data.path[i]);
               Serial.print(", ");
             }
@@ -110,9 +115,26 @@ void receive(){                                                             //Re
 void transmit(MsgData Transmit_Msg){                                        //Transmit Data to Another Node
     radio.openWritingPipe(addresses[0]);
     radio.stopListening();
-  for(byte i=0; i<TransAMOUNT; i++){
-        Serial.println("Transmitted Data");  
+  for(i=0; i<TransAMOUNT; i++){  
         radio.write(&Transmit_Msg, sizeof(MsgData));
         delay(5);
   }
+  Serial.println("Transmitted Data");
+  Serial.print("ID: ");
+  Serial.println(Transmit_Msg.ID);
+
+  Serial.print("Place_In_Path: ");
+  Serial.println(Transmit_Msg.Place_In_Path);
+
+  Serial.print("Path: ");
+  for (i=0;i<Max_Nodes;i++){
+    Serial.print(Transmit_Msg.path[i]);
+    Serial.print(", ");
+  }
+  Serial.println("");
+
+  Serial.print("Return_Flag: ");
+  Serial.println(Transmit_Msg.return_flag);
+  
+  delay(5);
 }

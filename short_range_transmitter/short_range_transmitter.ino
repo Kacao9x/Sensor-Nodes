@@ -1,29 +1,41 @@
 #include <SPI.h>
 #include "RF24.h"
-#include "DHT.h"
 
 RF24 radio(7,8);
 const uint64_t pipe = 0xE8E8F0F0E1LL; //channel to recieve
 byte addresses[][6] = {"00001","00002"};
 //unsigned long msg;
+const byte NodeID = 1;
+float NodeData = 420;
+const int Max_Nodes = 256;
+typedef struct {
+  byte ID; //Node ID number
+  int path [Max_Nodes]; //The path to go down
+  byte Place_In_Path; //Where in the array are we
+  byte cmd; //go to sleep, other odd commands
+  bool return_flag;//Return to home node, go from ++ to --
+  float sensor1;
+}MsgData;
 
-typedef struct{
-  byte Direction;
-  int ID;
-  float Data;
-}package;
+  MsgData My_Data;
+  MsgData Received_Data;
 
 
 //Initializing the Data in Structs.
 //These can be altered Later by using Struct_name.Struct_access 
-package recievedData = {0, 0};
-package myData = {1, 2, 1};
+
 int TransAMOUNT=5;
 int DataTRANS=false;
 int i;
 int Timeout=5000;
 
 void setup(void){
+    for( i=0; i<256; i++){
+      My_Data.path[i] = -1;
+    }
+   
+    My_Data.ID = NodeID;
+    My_Data.sensor1 = NodeData;
     Serial.begin(9600);
     radio.begin();
     radio.setAutoAck(false);
@@ -36,15 +48,17 @@ void setup(void){
 
 void loop(void){
  DataTRANS=false;
+ My_Data.return_flag=0;
+My_Data.Place_In_Path=0;
  i=0;
- transmit(myData);
+ transmit(My_Data);
  while(DataTRANS){   //recieve until hear response from different direction same ID
     if(i==0){
       Serial.println("---Listening For Response---");
     }
     recieve();
-    if((recievedData.Direction==0)&&(recievedData.ID==myData.ID)){
-      Serial.print("Data recieved: "); Serial.print(recievedData.ID);Serial.print(", ");Serial.println(recievedData.Data);
+    if((Received_Data.return_flag == 1)&&(Received_Data.path[Received_Data.Place_In_Path])){
+      Serial.print("Data recieved: "); Serial.print(Received_Data.ID);Serial.print(", ");Serial.println(Received_Data.sensor1);
       break;
     }
     if(i>Timeout){
@@ -62,13 +76,13 @@ void recieve(){
     radio.openReadingPipe(1,addresses[0]);
     radio.startListening();  
        if(radio.available()){ 
-            radio.read(&recievedData, sizeof(package));  //byte value
+            radio.read(&Received_Data, sizeof(MsgData));  //byte value
             delay(5);
       }
     return;
 }
 
-void transmit(package myData){
+void transmit(MsgData My_Data){
     radio.openWritingPipe(addresses[0]);
     radio.stopListening();
   for(byte i=0; i<TransAMOUNT; i++){ 
@@ -76,23 +90,27 @@ void transmit(package myData){
         int temp1= digitalRead(5);
         int temp2= digitalRead(6);
         if(temp==LOW){
-        myData = {1, 5, 223};
+        My_Data.path[0] = 0;
+        My_Data.path[1] = 1;
         DataTRANS=true;
         }
         if(temp1==LOW){
-        myData = {1, 3, 32};
+        My_Data.path[0] = 0;
+        My_Data.path[1] = 2;
         DataTRANS=true;
         }
         if(temp2==LOW){
-        myData = {1, -1, 800};
+        My_Data.path[0] = 0;
+        My_Data.path[1] = 1;
+        My_Data.path[1] = 2;
         DataTRANS=true;
         }
         if(temp==HIGH&&temp1==HIGH&&temp2==HIGH){
           return;
         }
-        radio.write(&myData, sizeof(package));
+        radio.write(&My_Data, sizeof(MsgData));
         delay(5);
-        Serial.print("sending_msg: ");Serial.print(myData.ID);Serial.print(", ");Serial.println(myData.Data);
+        Serial.print("sending_msg: ");Serial.print(My_Data.ID);Serial.print(", ");Serial.println(My_Data.sensor1);
   }
 }
 
