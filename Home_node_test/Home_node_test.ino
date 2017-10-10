@@ -102,6 +102,15 @@ void serial_logger(){
         My_Data.path[3] = 3;
       Serial.println(F("Calling node 3"));
    }
+        else if ( c == '4'){ 
+        //path to 4
+        My_Data.path[0] = 0;
+        My_Data.path[1] = 1;
+        My_Data.path[2] = 2;
+        My_Data.path[3] = 3;
+        My_Data.path[4] = 4;
+      Serial.println(F("Calling node 4"));
+   }
      else{
     return;
    }
