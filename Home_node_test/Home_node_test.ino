@@ -8,6 +8,7 @@ byte addresses[][6] = {"1Node","2Node"};
 const byte NodeID = 0;
 float NodeData = 0;
 const int Max_Nodes = 20;
+
 typedef struct {
   byte ID; //Node ID number
   byte path [Max_Nodes]; //The path to go down    //up to 256 differnt node names only a path of 31
