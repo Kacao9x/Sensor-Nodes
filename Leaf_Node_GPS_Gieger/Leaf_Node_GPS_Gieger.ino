@@ -42,6 +42,7 @@ void setup() {
     radio.startListening();
     My_Data.ID = NodeID;
     My_Data.sensor1 = NodeData;
+    pinMode(A0,OUTPUT);
 }
 
 void loop() {  
@@ -114,8 +115,9 @@ void receive(){                                                             //Re
 
             Serial.print("Return_Flag: ");
             Serial.println(Received_Data.return_flag);
-            
+            digitalWrite(A0,HIGH);
             delay(5);
+         
          // }
       }
     return;
@@ -146,4 +148,5 @@ void transmit(MsgData Transmit_Msg){                                        //Tr
   Serial.println(Transmit_Msg.return_flag);
   
   delay(5);
+digitalWrite(A0,LOW);
 }
