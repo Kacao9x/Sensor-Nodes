@@ -2,7 +2,7 @@
 #include "RF24.h"
 
 const byte NodeID = 1;
-float NodeData = 1.11;
+float NodeData = NodeID;
 
 const int Max_Nodes = 20;
 byte Received_ID_Tags[Max_Nodes]; //write max number of Nodes. 
@@ -30,7 +30,6 @@ typedef struct {
 
 MsgData My_Data;
 MsgData Received_Data;
-MsgData BAD_DATA;
 
 int i;
 
@@ -42,6 +41,7 @@ void setup() {
     radio.startListening();
     My_Data.ID = NodeID;
     My_Data.sensor1 = NodeData;
+    pinMode(A0,OUTPUT);
 }
 
 void loop() {  
@@ -97,6 +97,7 @@ void receive(){                                                             //Re
        //if(radio.available()){ 
           while(radio.available()){ 
             radio.read(&Received_Data, sizeof(MsgData));  //byte value
+            digitalWrite(A0, HIGH);
             Serial.println("\nRecieved Data");
             
             Serial.print("ID: ");
