@@ -2,7 +2,7 @@
 #include "RF24.h"
 
 const byte NodeID = 1;
-float NodeData = NodeID;
+float NodeData = 1.11;
 
 const int Max_Nodes = 20;
 byte Received_ID_Tags[Max_Nodes]; //write max number of Nodes. 
@@ -115,9 +115,8 @@ void receive(){                                                             //Re
 
             Serial.print("Return_Flag: ");
             Serial.println(Received_Data.return_flag);
-            digitalWrite(A0,HIGH);
+            
             delay(5);
-         
          // }
       }
     return;
@@ -148,5 +147,4 @@ void transmit(MsgData Transmit_Msg){                                        //Tr
   Serial.println(Transmit_Msg.return_flag);
   
   delay(5);
-digitalWrite(A0,LOW);
 }
