@@ -42,14 +42,17 @@ void setup() {
     My_Data.ID = NodeID;
     My_Data.sensor1 = NodeData;
     pinMode(A0,OUTPUT);
+    pinMode(A1,OUTPUT);
+    pinMode(2,OUTPUT);
 }
 
 void loop() {  
+  digitalWrite(2,HIGH);
   receive(); //wait until we get something
   
 
 
-  //If next number is -1 (end of path) AND we are the next in line
+  //If next number is 0 (end of path) AND we are the next in line
   //BACK TO HOME NODE
   if(0 == Received_Data.path[Received_Data.Place_In_Path + 1] && Received_Data.path[Received_Data.Place_In_Path] == My_Data.ID){
     Received_Data.return_flag = 1; //Return to the home node
@@ -117,6 +120,7 @@ void receive(){                                                             //Re
             Serial.println(Received_Data.return_flag);
             
             delay(5);
+            digitalWrite(A0, LOW);
          // }
       }
     return;
@@ -125,9 +129,11 @@ void receive(){                                                             //Re
 void transmit(MsgData Transmit_Msg){                                        //Transmit Data to Another Node
     radio.openWritingPipe(addresses[0]);
     radio.stopListening();
-  for(i=0; i<TransAMOUNT; i++){  
+  for(i=0; i<TransAMOUNT; i++){ 
+    digitalWrite(A1, HIGH); 
         radio.write(&Transmit_Msg, sizeof(MsgData));
         delay(5);
+        digitalWrite(A1, LOW);
   }
   Serial.println("Transmitted Data");
   Serial.print("ID: ");
