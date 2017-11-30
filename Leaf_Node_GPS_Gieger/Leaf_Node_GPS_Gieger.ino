@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include "RF24.h"
+#include "LowPower.h"
 
 const byte NodeID = 1;
 float NodeData = NodeID;
@@ -82,10 +83,26 @@ void loop() {
     delay(delay_PASS);
     transmit(Received_Data);
   }
+  
+    //SLEEP STATE
+    else if(Received_Data.path[Received_Data.Place_In_Path] == My_Data.ID && Received_Data.cmd == 1){
+      Received_Data.Place_In_Path ++;   //otherwise, increment (follow up along path)
+      Serial.println("Passed Fowards Data");
+    //if you are called, wait a moment before sending out information. 
+    delay(delay_PASS);
+    transmit(Received_Data);
+    //set up sleep time and sleep the desired amount of sleep time in seconds (43200 sec = 12 hours)
+    int sleep_time = Received_Data.sensor1/8;
+    for(i=0;i<sleep_time;i++){
+      LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, 
+                SPI_OFF, USART0_OFF, TWI_OFF);
+       }
+    }
   else{
     //do nothing otherwise
    
   }
+
   
 
 }
