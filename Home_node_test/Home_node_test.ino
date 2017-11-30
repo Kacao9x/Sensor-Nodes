@@ -94,7 +94,6 @@ void serial_logger(){
         My_Data.path[2] = 2;   
       Serial.println(F("Calling node 2"));
    }
-
        else if ( c == '3'){ 
         //path to 3
         My_Data.path[0] = 0;
