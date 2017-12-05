@@ -2,8 +2,8 @@
 #include "RF24.h"
 #include "LowPower.h"
 
-const byte NodeID = 1;
-float NodeData = 1.11;
+const byte NodeID = 2;
+float NodeData = NodeID;
 
 const int Max_Nodes = 20;
 byte Received_ID_Tags[Max_Nodes]; //write max number of Nodes. 
@@ -24,7 +24,7 @@ typedef struct {
   byte ID; //Node ID number
   byte path [Max_Nodes]; //Up to 256 Node names but a MAXIMUM PATH of 30
   byte Place_In_Path; //Where in the array are we
-  byte cmd; //go to sleep, other odd commands
+  byte cmd; //go to sleep(1), other odd commands
   bool return_flag;//Return to home node, go from ++ to --
   float sensor1;
 }MsgData;
